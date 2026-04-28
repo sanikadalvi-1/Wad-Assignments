@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Nunito', sans-serif; background: #f0f2f8; margin: 0; }
+
+    #sidebar { width: 260px; min-height: 100vh; background: linear-gradient(180deg, #1a1f5e 0%, #2d3494 100%); position: fixed; top: 0; left: 0; display: flex; flex-direction: column; transition: all 0.3s ease; z-index: 1000; }
+    #sidebar.collapsed { width: 70px; }
+    .sidebar-brand { padding: 20px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .brand-icon { width: 38px; height: 38px; background: #f4a62a; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; flex-shrink: 0; }
+    .brand-text { font-size: 18px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; }
+    #sidebar.collapsed .brand-text, #sidebar.collapsed .nav-label, #sidebar.collapsed .sidebar-section-title { display: none; }
+    .sidebar-nav { padding: 16px 10px; flex: 1; }
+    .sidebar-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: rgba(255,255,255,0.4); padding: 10px 10px 4px; letter-spacing: 1.2px; }
+    .nav-item-link { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 10px; color: rgba(255,255,255,0.7); text-decoration: none; font-weight: 600; font-size: 14px; margin-bottom: 3px; transition: all 0.2s; white-space: nowrap; }
+    .nav-item-link i { font-size: 18px; flex-shrink: 0; }
+    .nav-item-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .nav-item-link.active { background: #f4a62a; color: #fff; box-shadow: 0 4px 15px rgba(244,166,42,0.4); }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .user-info img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #f4a62a; flex-shrink: 0; }
+    .user-details { overflow: hidden; }
+    .user-name { color: #fff; font-weight: 700; font-size: 14px; white-space: nowrap; }
+    .user-role { color: rgba(255,255,255,0.5); font-size: 11px; white-space: nowrap; }
+
+    #main { margin-left: 260px; transition: margin-left 0.3s ease; min-height: 100vh; display: flex; flex-direction: column; }
+    #main.expanded { margin-left: 70px; }
+
+    .topbar { background: #fff; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e4e8f0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    #toggleBtn { background: none; border: none; cursor: pointer; color: #444; font-size: 22px; }
+    .topbar-title { font-size: 20px; font-weight: 800; color: #1a1f5e; }
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
+    .search-box { display: flex; align-items: center; gap: 8px; background: #f0f2f8; border-radius: 10px; padding: 8px 14px; }
+    .search-box input { border: none; background: none; outline: none; font-size: 14px; font-family: 'Nunito', sans-serif; width: 180px; }
+    .icon-btn { width: 38px; height: 38px; background: #f0f2f8; border: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #555; font-size: 18px; cursor: pointer; position: relative; transition: background 0.2s; }
+    .icon-btn:hover { background: #e2e6f0; }
+    .badge-dot { width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; position: absolute; top: 7px; right: 7px; }
+
+    .page-content { padding: 28px; flex: 1; }
+    .page-header { margin-bottom: 24px; }
+    .page-header h2 { font-size: 24px; font-weight: 800; color: #1a1f5e; margin: 0; }
+    .page-header p { color: #888; margin: 4px 0 0; font-size: 14px; }
+
+    .stat-card { background: #fff; border-radius: 16px; padding: 22px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: transform 0.2s, box-shadow 0.2s; }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+    .stat-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+    .stat-info { flex: 1; }
+    .stat-value { font-size: 26px; font-weight: 800; color: #1a1f5e; line-height: 1; }
+    .stat-label { font-size: 13px; color: #888; margin-top: 4px; font-weight: 600; }
+    .stat-change { font-size: 12px; font-weight: 700; margin-top: 6px; }
+    .stat-change.up { color: #27ae60; }
+    .stat-change.down { color: #e74c3c; }
+
+    .card-box { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .card-box-title { font-size: 16px; font-weight: 800; color: #1a1f5e; margin-bottom: 16px; }
+    .table th { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #aaa; border: none; }
+    .table td { font-size: 14px; font-weight: 600; color: #333; vertical-align: middle; }
+    .table tbody tr:hover { background: #f8f9ff; }
+    .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .progress { height: 8px; border-radius: 10px; }
+
+    @media (max-width: 768px) {
+      #sidebar { width: 70px; }
+      #sidebar .brand-text, #sidebar .nav-label, #sidebar .sidebar-section-title, #sidebar .user-details { display: none; }
+      #main { margin-left: 70px; }
+      .search-box { display: none; }
+      .page-content { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><i class="bi bi-mortarboard-fill"></i></div>
+    <span class="brand-text">EduAdmin</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-title">Main</div>
+    <a href="#" class="nav-item-link active"><i class="bi bi-grid-fill"></i><span class="nav-label">Dashboard</span></a>
+    <a href="#" class="nav-item-link"><i class="bi bi-people-fill"></i><span class="nav-label">Students</span></a>
+    <a href="#" class="nav-item-link"><i class="bi bi-journal-text"></i><span class="nav-label">Courses</span></a>
+    <a href="#" class="nav-item-link"><i class="bi bi-clipboard2-check-fill"></i><span class="nav-label">Exams</span></a>
+    <a href="#" class="nav-item-link"><i class="bi bi-bag-fill"></i><span class="nav-label">Orders</span></a>
+    <div class="sidebar-section-title mt-3">Reports</div>
+    <a href="#" class="nav-item-link"><i class="bi bi-bar-chart-fill"></i><span class="nav-label">Analytics</span></a>
+    <a href="#" class="nav-item-link"><i class="bi bi-bell-fill"></i><span class="nav-label">Notifications</span></a>
+    <a href="#" class="nav-item-link"><i class="bi bi-gear-fill"></i><span class="nav-label">Settings</span></a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <!-- STEP: Save your photo as "photo.jpg" in the same folder and use below -->
+      <img src="SC:\Users\lenovo\Pictures\Screenshots\Screenshot 2026-04-28 160719.png" alt="User">
+      <div class="user-details">
+        <div class="user-name">Sanika Dalvi</div>
+        <div class="user-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button id="toggleBtn"><i class="bi bi-list"></i></button>
+      <span class="topbar-title">Dashboard</span>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box">
+        <i class="bi bi-search text-muted"></i>
+        <input type="text" placeholder="Search...">
+      </div>
+      <button class="icon-btn"><i class="bi bi-bell"></i><span class="badge-dot"></span></button>
+      <button class="icon-btn"><i class="bi bi-envelope"></i></button>
+      <img src="C:\Users\lenovo\Pictures\Screenshots\Screenshot 2026-04-28 160719.png" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #f4a62a;" alt="profile">
+    </div>
+  </div>
+
+  <!-- PAGE CONTENT -->
+  <div class="page-content">
+
+    <div class="page-header">
+      <h2>Welcome back, Sanika Dalvi 👋</h2>
+      <p>Here's what's happening with your platform today.</p>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="row g-4 mb-4">
+      <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#eef0ff;color:#2d3494;"><i class="bi bi-people-fill"></i></div>
+          <div class="stat-info">
+            <div class="stat-value">4,280</div>
+            <div class="stat-label">Total Students</div>
+            <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> 12% this month</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff8ec;color:#f4a62a;"><i class="bi bi-journal-text"></i></div>
+          <div class="stat-info">
+            <div class="stat-value">128</div>
+            <div class="stat-label">Active Courses</div>
+            <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> 5 new added</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#edfbf4;color:#27ae60;"><i class="bi bi-clipboard2-check-fill"></i></div>
+          <div class="stat-info">
+            <div class="stat-value">36</div>
+            <div class="stat-label">Exams Scheduled</div>
+            <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> 8 this week</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef0f0;color:#e74c3c;"><i class="bi bi-bag-fill"></i></div>
+          <div class="stat-info">
+            <div class="stat-value">₹2.4L</div>
+            <div class="stat-label">Revenue</div>
+            <div class="stat-change down"><i class="bi bi-arrow-down-short"></i> 3% vs last month</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE + PROGRESS -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="card-box">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="card-box-title mb-0">Recent Orders</div>
+            <a href="#" class="btn btn-sm btn-outline-primary" style="border-radius:8px;font-weight:700;font-size:13px;">View All</a>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-borderless align-middle">
+              <thead><tr><th>#Order</th><th>Student</th><th>Course</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>#1021</td><td><div class="d-flex align-items-center gap-2"><div style="width:32px;height:32px;border-radius:50%;background:#eef0ff;display:flex;align-items:center;justify-content:center;font-weight:800;color:#2d3494;font-size:13px;">R</div>Rahul Sharma</div></td><td>Web Dev Bootcamp</td><td>₹4,999</td><td><span class="status-badge" style="background:#edfbf4;color:#27ae60;">Paid</span></td></tr>
+                <tr><td>#1022</td><td><div class="d-flex align-items-center gap-2"><div style="width:32px;height:32px;border-radius:50%;background:#fff8ec;display:flex;align-items:center;justify-content:center;font-weight:800;color:#f4a62a;font-size:13px;">P</div>Priya Patil</div></td><td>Data Science</td><td>₹7,499</td><td><span class="status-badge" style="background:#eef0ff;color:#2d3494;">Processing</span></td></tr>
+                <tr><td>#1023</td><td><div class="d-flex align-items-center gap-2"><div style="width:32px;height:32px;border-radius:50%;background:#fef0f0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#e74c3c;font-size:13px;">A</div>Aman Verma</div></td><td>UI/UX Design</td><td>₹3,299</td><td><span class="status-badge" style="background:#fef0f0;color:#e74c3c;">Pending</span></td></tr>
+                <tr><td>#1024</td><td><div class="d-flex align-items-center gap-2"><div style="width:32px;height:32px;border-radius:50%;background:#edfbf4;display:flex;align-items:center;justify-content:center;font-weight:800;color:#27ae60;font-size:13px;">N</div>Neha Joshi</div></td><td>Python & ML</td><td>₹5,999</td><td><span class="status-badge" style="background:#edfbf4;color:#27ae60;">Paid</span></td></tr>
+                <tr><td>#1025</td><td><div class="d-flex align-items-center gap-2"><div style="width:32px;height:32px;border-radius:50%;background:#eef0ff;display:flex;align-items:center;justify-content:center;font-weight:800;color:#2d3494;font-size:13px;">S</div>Saurabh More</div></td><td>Cloud Computing</td><td>₹6,499</td><td><span class="status-badge" style="background:#edfbf4;color:#27ae60;">Paid</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card-box h-100">
+          <div class="card-box-title">Course Completion</div>
+          <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span style="font-size:13px;font-weight:700;color:#333;">Web Dev Bootcamp</span><span style="font-size:13px;font-weight:700;color:#2d3494;">82%</span></div><div class="progress"><div class="progress-bar" style="width:82%;background:#2d3494;"></div></div></div>
+          <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span style="font-size:13px;font-weight:700;color:#333;">Data Science</span><span style="font-size:13px;font-weight:700;color:#f4a62a;">67%</span></div><div class="progress"><div class="progress-bar" style="width:67%;background:#f4a62a;"></div></div></div>
+          <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span style="font-size:13px;font-weight:700;color:#333;">UI/UX Design</span><span style="font-size:13px;font-weight:700;color:#27ae60;">90%</span></div><div class="progress"><div class="progress-bar" style="width:90%;background:#27ae60;"></div></div></div>
+          <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span style="font-size:13px;font-weight:700;color:#333;">Python & ML</span><span style="font-size:13px;font-weight:700;color:#e74c3c;">45%</span></div><div class="progress"><div class="progress-bar" style="width:45%;background:#e74c3c;"></div></div></div>
+          <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span style="font-size:13px;font-weight:700;color:#333;">Cloud Computing</span><span style="font-size:13px;font-weight:700;color:#2d3494;">73%</span></div><div class="progress"><div class="progress-bar" style="width:73%;background:#2d3494;"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXAMS + TOP STUDENTS -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="card-box">
+          <div class="card-box-title">Upcoming Exams</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item px-0 d-flex justify-content-between align-items-center"><div><div style="font-weight:700;font-size:14px;color:#1a1f5e;">Database Management</div><div style="font-size:12px;color:#aaa;"><i class="bi bi-calendar3 me-1"></i>May 2, 2025 | <i class="bi bi-clock me-1"></i>10:00 AM</div></div><span class="status-badge" style="background:#fff8ec;color:#f4a62a;">Upcoming</span></li>
+            <li class="list-group-item px-0 d-flex justify-content-between align-items-center"><div><div style="font-weight:700;font-size:14px;color:#1a1f5e;">Operating Systems</div><div style="font-size:12px;color:#aaa;"><i class="bi bi-calendar3 me-1"></i>May 5, 2025 | <i class="bi bi-clock me-1"></i>2:00 PM</div></div><span class="status-badge" style="background:#eef0ff;color:#2d3494;">Scheduled</span></li>
+            <li class="list-group-item px-0 d-flex justify-content-between align-items-center"><div><div style="font-weight:700;font-size:14px;color:#1a1f5e;">Computer Networks</div><div style="font-size:12px;color:#aaa;"><i class="bi bi-calendar3 me-1"></i>May 8, 2025 | <i class="bi bi-clock me-1"></i>11:00 AM</div></div><span class="status-badge" style="background:#edfbf4;color:#27ae60;">Ready</span></li>
+            <li class="list-group-item px-0 d-flex justify-content-between align-items-center"><div><div style="font-weight:700;font-size:14px;color:#1a1f5e;">Software Engineering</div><div style="font-size:12px;color:#aaa;"><i class="bi bi-calendar3 me-1"></i>May 12, 2025 | <i class="bi bi-clock me-1"></i>9:00 AM</div></div><span class="status-badge" style="background:#fef0f0;color:#e74c3c;">Pending</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card-box">
+          <div class="card-box-title">Top Students</div>
+          <table class="table table-borderless">
+            <thead><tr><th>Student</th><th>Course</th><th>Score</th><th>Rank</th></tr></thead>
+            <tbody>
+              <tr><td><div class="d-flex align-items-center gap-2"><div style="width:30px;height:30px;border-radius:50%;background:#fff8ec;display:flex;align-items:center;justify-content:center;font-weight:800;color:#f4a62a;font-size:12px;">N</div>Neha Joshi</div></td><td>Python & ML</td><td><strong>98%</strong></td><td><span class="badge" style="background:#f4a62a;">🥇 1st</span></td></tr>
+              <tr><td><div class="d-flex align-items-center gap-2"><div style="width:30px;height:30px;border-radius:50%;background:#eef0ff;display:flex;align-items:center;justify-content:center;font-weight:800;color:#2d3494;font-size:12px;">R</div>Rahul Sharma</div></td><td>Web Dev</td><td><strong>95%</strong></td><td><span class="badge bg-secondary">🥈 2nd</span></td></tr>
+              <tr><td><div class="d-flex align-items-center gap-2"><div style="width:30px;height:30px;border-radius:50%;background:#edfbf4;display:flex;align-items:center;justify-content:center;font-weight:800;color:#27ae60;font-size:12px;">P</div>Priya Patil</div></td><td>Data Science</td><td><strong>91%</strong></td><td><span class="badge" style="background:#cd7f32;">🥉 3rd</span></td></tr>
+              <tr><td><div class="d-flex align-items-center gap-2"><div style="width:30px;height:30px;border-radius:50%;background:#fef0f0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#e74c3c;font-size:12px;">S</div>Saurabh More</div></td><td>Cloud</td><td><strong>88%</strong></td><td><span class="badge bg-light text-dark">4th</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="py-3 border-top text-center" style="background:#fff;">
+    <p class="text-muted mb-0" style="font-size:13px;">© 2025 EduAdmin. All rights reserved.</p>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const toggleBtn = document.getElementById('toggleBtn');
+  const sidebar = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+  toggleBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+    main.classList.toggle('expanded');
+  });
+</script>
+</body>
+</html>
