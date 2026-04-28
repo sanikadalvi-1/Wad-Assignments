@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d0d; --card: #161616; --accent: #ffffff;
+      --text: #f0f0f0; --muted: #666; --border: #2a2a2a; --input-bg: #1e1e1e;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center; padding: 2rem;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 70% 20%, rgba(200,241,53,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .wrapper { width: 100%; max-width: 420px; animation: fadeUp 0.6s ease both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 2.4rem; }
+    .brand-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
+    .brand span {
+      font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800;
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--text);
+    }
+    h1 { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800; line-height: 1.15; margin-bottom: 0.5rem; }
+    h1 span { color: var(--accent); }
+    .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
+    .field { margin-bottom: 1.2rem; }
+    label {
+      display: block; font-size: 0.78rem; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.45rem;
+    }
+    input {
+      width: 100%; background: var(--input-bg); border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 0.75rem 1rem;
+      font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+      color: var(--text); outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(200,241,53,0.1); }
+    input::placeholder { color: var(--muted); }
+    .btn {
+      width: 100%; margin-top: 0.5rem; padding: 0.85rem;
+      background: var(--accent); color: #0d0d0d; border: none;
+      border-radius: 10px; font-family: 'Syne', sans-serif;
+      font-size: 0.95rem; font-weight: 700; letter-spacing: 0.04em;
+      cursor: pointer; transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--accent); color: #0d0d0d;
+      padding: 0.75rem 1.25rem; border-radius: 10px;
+      font-weight: 700; font-size: 0.9rem;
+      display: none; align-items: center; gap: 8px;
+      animation: slideIn 0.3s ease; z-index: 999;
+    }
+    .toast.show { display: flex; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+ 
+<div class="wrapper">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <span>RegApp</span>
+  </div>
+ 
+  <h1>Create your<br><span>Account.</span></h1>
+  <p class="subtitle">Fill in the form to get registered.</p>
+ 
+  <div class="card">
+    <form id="regForm">
+      <div class="field">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" placeholder="John Doe" required>
+      </div>
+      <div class="field">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="john@example.com" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Min. 6 characters" minlength="6" required>
+      </div>
+      <button type="submit" class="btn" id="submitBtn">Register →</button>
+    </form>
+  </div>
+</div>
+ 
+<div class="toast" id="toast"></div>
+ 
+<script>
+  const form = document.getElementById('regForm');
+  const toast = document.getElementById('toast');
+  const btn = document.getElementById('submitBtn');
+ 
+  function showToast(msg, color = '#c8f135') {
+    toast.textContent = msg;
+    toast.style.background = color;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+ 
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+ 
+    const user = {
+      id: Date.now(),
+      name: document.getElementById('name').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value,
+      createdAt: new Date().toLocaleString()
+    };
+ 
+    btn.textContent = 'Saving...';
+    btn.disabled = true;
+ 
+    fetch('https://jsonplaceholder.typicode.com/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(user)
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('Network error');
+      return res.json();
+    })
+    .then(() => {
+      const users = JSON.parse(localStorage.getItem('regapp_users')) || [];
+      users.push(user);
+      localStorage.setItem('regapp_users', JSON.stringify(users));
+      form.reset();
+      showToast('✓ Registered successfully!');
+    })
+    .catch(() => {
+      showToast('✗ Something went wrong.', '#ff5c5c');
+    })
+    .finally(() => {
+      btn.textContent = 'Register →';
+      btn.disabled = false;
+    });
+  });
+</script>
+</body>
+</html>
